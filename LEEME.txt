@@ -1,0 +1,19 @@
+MI BIBLIOTECA
+
+Uso inmediato:
+1. Abre Mi_Biblioteca.html con Safari.
+2. Úsala y guarda la página en Favoritos.
+
+Versión web:
+La carpeta MiBibliotecaWeb está preparada para publicarse en cualquier alojamiento web estático.
+Al publicarla tendrás una dirección normal que podrás guardar en Favoritos de Safari.
+
+Funciones incluidas:
+- 664 libros del Excel.
+- Búsqueda por título o escritor.
+- Estado leído/no leído.
+- Ficha completa con los 9 campos acordados.
+- Edición y guardado en el navegador.
+- Estadísticas básicas.
+- Exportación CSV.
+- Copia de seguridad JSON.
