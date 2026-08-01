@@ -15,7 +15,40 @@ function sortBooks(){books.sort((a,b)=>normalise(a.Escritor).localeCompare(norma
 function persist(){localStorage.setItem("mi_biblioteca_books",JSON.stringify(books));updateCount()}
 function updateCount(){document.getElementById("bookCount").textContent=`${books.length} libros`}
 function goHome(){switchView("home");updateCount()}
-function notReady(){alert("Esta función se añadirá después de conectar la carpeta de EPUB.")}
+function xmlText(doc,tag){
+ const el=doc.getElementsByTagName(tag)[0]||doc.getElementsByTagNameNS("*",tag.split(":").pop())[0];
+ return el?el.textContent.trim():"";
+}
+async function readEpubMeta(file){
+ const zip=await JSZip.loadAsync(file);
+ const containerXml=await zip.file("META-INF/container.xml").async("string");
+ const containerDoc=new DOMParser().parseFromString(containerXml,"application/xml");
+ const opfPath=containerDoc.getElementsByTagName("rootfile")[0].getAttribute("full-path");
+ const opfXml=await zip.file(opfPath).async("string");
+ const opfDoc=new DOMParser().parseFromString(opfXml,"application/xml");
+ const titulo=xmlText(opfDoc,"dc:title")||"Sin título";
+ const escritor=xmlText(opfDoc,"dc:creator")||"Sin escritor";
+ return {titulo,escritor};
+}
+async function importEpub(input){
+ const files=Array.from(input.files||[]);
+ if(!files.length)return;
+ let added=0,failed=0;
+ for(const file of files){
+  try{
+   const {titulo,escritor}=await readEpubMeta(file);
+   books.push({id:"epub-"+Date.now()+"-"+added,Titulo:titulo,Escritor:escritor,Serie:"*",Pais:"",
+    "Año":"","Leído":"No","When":"","Valor":"","Para leer":""});
+   added++;
+  }catch(e){failed++}
+ }
+ if(added){sortBooks();persist()}
+ input.value="";
+ if(added&&!failed)toast(added===1?"Libro añadido":added+" libros añadidos");
+ else if(added&&failed)toast(added+" añadidos, "+failed+" con error");
+ else alert("No se ha podido leer ese EPUB.");
+ if(added)goHome();
+}
 function showSearch(){switchView("search");document.getElementById("query").focus();renderResults()}
 function backToSearch(){switchView("search");renderResults()}
 
