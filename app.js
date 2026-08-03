@@ -10,7 +10,13 @@ const fields = [
 function normalise(v){return String(v??"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase()}
 function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[c]))}
 function isRead(v){return ["si","sí","yes","leido","leído","true","1"].includes(normalise(v).trim())}
-function switchView(id){["home","search","detail","stats","settings"].forEach(x=>document.getElementById(x).classList.toggle("hidden",x!==id));scrollTo(0,0)}
+function switchView(id){
+ ["home","search","detail","stats","settings","nextBooks"].forEach(x=>{
+  const e=document.getElementById(x);
+  if(e)e.classList.toggle("hidden",x!==id);
+ });
+ scrollTo(0,0);
+}
 function sortBooks(){books.sort((a,b)=>normalise(a.Escritor).localeCompare(normalise(b.Escritor))||normalise(a.Titulo).localeCompare(normalise(b.Titulo)))}
 function persist(){localStorage.setItem("mi_biblioteca_books",JSON.stringify(books));updateCount()}
 function updateCount(){document.getElementById("bookCount").textContent=`${books.length} libros`}
@@ -81,6 +87,13 @@ function saveEdit(){
  const b=getCurrent(); fields.forEach(([k])=>b[k]=document.getElementById("edit_"+k).value.trim());
  sortBooks();persist();renderView();renderResults();toast("Cambios guardados");
 }
+function showNextBooks(){
+ const next=books.filter(b=>String(b["Para leer"]||"").trim().toLowerCase()=="si");
+ const list=document.getElementById("nextBooksList");
+ list.innerHTML=next.length?next.map(b=>`<button class="result" onclick="openBook('${b.id}')"><div class="result-title">${esc(b.Titulo||"Sin título")}</div><div class="result-author">${esc(b.Escritor||"Sin escritor")}</div></button>`).join(""):'<div class="empty">No hay libros marcados.</div>';
+ switchView("nextBooks");
+}
+
 function showStats(){
  const read=books.filter(b=>isRead(b["Leído"])).length;
  const pending=books.length-read;
